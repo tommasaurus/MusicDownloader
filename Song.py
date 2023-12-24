@@ -4,6 +4,8 @@ from pytube import YouTube, Playlist
 import ssl
 import json
 from moviepy.editor import VideoFileClip, AudioFileClip
+from bs4 import BeautifulSoup
+import requests
 
 desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
 music_folder_name = 'Music'
@@ -21,38 +23,9 @@ def convert_webm_to_mp3(input_path, output_path):
     audio_clip.write_audiofile(output_path, codec='mp3')
     video_clip.close()
 
-def search(song_title):
-    results = YoutubeSearch(song_title, max_results=1).to_json()
-
-    data = json.loads(results)
-    if len(data["videos"]) > 0:
-        ssl._create_default_https_context = ssl._create_unverified_context
-        first_video_id = data["videos"][0]["id"]
-        video_url = "https://www.youtube.com/watch?v=" + first_video_id
-
-        yt = YouTube(video_url)
-        audio_stream = yt.streams.filter(only_audio=True, file_extension='webm').order_by('abr').first()
-        
-        print(audio_stream.title)
-        song_title = audio_stream.title + ".mp3"
-
-        audio_clip = AudioFileClip(audio_stream.url)
-        audio_file_path_mp3 = os.path.join(music_folder_path, song_title)
-        audio_clip.write_audiofile(audio_file_path_mp3)
-        return True
-    return False
-
-def download_album(playlist_url):
-    # Create a Playlist object
-    playlist = Playlist(playlist_url)
-
-    # Iterate through each video in the playlist
-    for video_url in playlist.video_urls:
-        # Download and convert each video to MP3
-        download_and_convert_to_mp3(video_url)
-
-def download_and_convert_to_mp3(video_url):
+def download_and_convert_to_mp3(video_url, path = None):
     # Create a YouTube object
+    ssl._create_default_https_context = ssl._create_unverified_context
     yt = YouTube(video_url)
 
     # Get the best audio stream
@@ -66,7 +39,48 @@ def download_and_convert_to_mp3(video_url):
 
     # Download and convert to MP3
     audio_clip = AudioFileClip(audio_stream.url)
-    audio_file_path_mp3 = os.path.join(music_folder_path, song_title)
+    
+    if path:
+        audio_file_path_mp3 = os.path.join(path, song_title)
+    else:
+        audio_file_path_mp3 = os.path.join(music_folder_path, song_title)
+
     audio_clip.write_audiofile(audio_file_path_mp3)
 
-search("impossible")
+def search(song_title):
+    results = YoutubeSearch(song_title, max_results=1).to_json()
+
+    data = json.loads(results)
+    if len(data["videos"]) > 0:
+        first_video_id = data["videos"][0]["id"]
+        video_url = "https://www.youtube.com/watch?v=" + first_video_id
+
+        download_and_convert_to_mp3(video_url)
+        return True
+    return False
+
+def download_album(playlist_url, new_folder = False):
+    # Create a Playlist object
+    ssl._create_default_https_context = ssl._create_unverified_context
+    playlist = Playlist(playlist_url)
+
+    album_path = ""
+    if new_folder:
+        album_path = os.path.join(music_folder_path, playlist.title)
+
+        if not os.path.exists(album_path):
+            os.makedirs(album_path)
+            print(f"The '{album_path}' folder has been created on the desktop.")
+        else:
+            print(f"The '{album_path}' folder already exists on the desktop.")
+
+
+    # Iterate through each video in the playlist
+    for video_url in playlist.video_urls:
+        # Download and convert each video to MP3
+        download_and_convert_to_mp3(video_url, album_path)
+    
+download_album("https://www.youtube.com/playlist?list=PLgNAVqTsP7odsw1WoIkj4D_w8NAqm9-2Q", new_folder=True)
+# search("orinoco")
+# results = YoutubeSearch("love yourself tear", max_results=3).to_json()
+# print(results)
