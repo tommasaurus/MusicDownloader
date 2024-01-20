@@ -4,8 +4,6 @@ from pytube import YouTube, Playlist
 import ssl
 import json
 from moviepy.editor import VideoFileClip, AudioFileClip
-from bs4 import BeautifulSoup
-import requests
 
 desktop_path = os.path.join(os.path.expanduser('~'), 'Desktop')
 music_folder_name = 'Music'
@@ -31,9 +29,6 @@ def download_and_convert_to_mp3(video_url, path = None):
     # Get the best audio stream
     audio_stream = yt.streams.filter(only_audio=True, file_extension='webm').order_by('abr').first()
 
-    # Print the title of the video
-    print(audio_stream.title)
-
     # Set the output file name
     song_title = audio_stream.title + ".mp3"
 
@@ -45,7 +40,8 @@ def download_and_convert_to_mp3(video_url, path = None):
     else:
         audio_file_path_mp3 = os.path.join(music_folder_path, song_title)
 
-    audio_clip.write_audiofile(audio_file_path_mp3)
+    enhanced_audio_clip = enhance_audio(audio_clip)
+    audio_clip.write_audiofile(enhanced_audio_clip)
 
 def search(song_title):
     results = YoutubeSearch(song_title, max_results=1).to_json()
@@ -80,7 +76,7 @@ def download_album(playlist_url, new_folder = False):
         # Download and convert each video to MP3
         download_and_convert_to_mp3(video_url, album_path)
     
-download_album("https://www.youtube.com/playlist?list=PLgNAVqTsP7odsw1WoIkj4D_w8NAqm9-2Q", new_folder=True)
-# search("orinoco")
+# download_album("https://www.youtube.com/playlist?list=PLgNAVqTsP7odsw1WoIkj4D_w8NAqm9-2Q", new_folder=True)
+# search("magic shop")
 # results = YoutubeSearch("love yourself tear", max_results=3).to_json()
 # print(results)
