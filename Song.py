@@ -108,6 +108,7 @@ def download_album(playlist_url, new_folder = False):
         download_and_convert_to_mp3(video_url, album_path)
     
 # download_album("https://www.youtube.com/playlist?list=PLgNAVqTsP7odsw1WoIkj4D_w8NAqm9-2Q", new_folder=True)
-search("monaco bad bunny")
+search("glimmer of blooms ~ I cant get get you out of my head {s l o w e d + reverb}")
+
 # results = YoutubeSearch("love yourself tear", max_results=3).to_json()
 # print(results)
